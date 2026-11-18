@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Երևանի ճանապարհներով</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🚗 Երևանի ճանապարհներով</h1>
+    <p>Վիրտուալ մեքենա վարելու խաղ</p>
+  </header>
+
+  <main class="game">
+    <section class="hud">
+      <span>📍 <b id="place">Հանրապետության հրապարակ</b></span>
+      <span>⭐ Միավորներ՝ <b id="score">0</b></span>
+      <span>⚡ Արագություն՝ <b id="speed">0</b></span>
+    </section>
+
+    <div class="scene" id="scene">
+      <div class="sky"></div>
+      <div class="sun"></div>
+      <div class="building building-a"></div>
+      <div class="building building-b"></div>
+      <div class="building building-c"></div>
+      <div class="road">
+        <div class="road-line"></div>
+        <div class="road-line"></div>
+        <div class="road-line"></div>
+      </div>
+      <div class="car" id="car">🚙</div>
+      <div class="message" id="message">
+        Սեղմիր «Գազ», որ սկսես խաղը։
+      </div>
+    </div>
+
+    <section class="controls">
+      <div class="steering">
+        <button id="left">⬅ Ձախ</button>
+        <button id="right">Աջ ➡</button>
+      </div>
+
+      <div class="pedals">
+        <button class="gas" id="gas">ԳԱԶ</button>
+        <button class="brake" id="brake">ԱՐԳԵԼԱԿ</button>
+      </div>
+
+      <button class="sound" id="sound">
+        🔊 Ձայնը միացված է
+      </button>
+
+      <button class="restart" id="restart">
+        ↻ Նորից սկսել
+      </button>
+    </section>
+
+    <p class="hint">
+      Կառավարում՝ սլաքներով կամ կոճակներով։
+      Խաղը միայն վիրտուալ է։
+    </p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
