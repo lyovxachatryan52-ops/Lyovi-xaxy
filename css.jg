@@ -1,0 +1,33 @@
+position: absolute; top: 48%; left: 0; width: 100%; height: 7px;
+  background: repeating-linear-gradient(90deg, #fff 0 55px, transparent 55px 105px);
+}
+.road-line:nth-child(2) { top: 20%; opacity: .35; }
+.road-line:nth-child(3) { top: 76%; opacity: .35; }
+.car {
+  position: absolute; z-index: 4; bottom: 35px; left: 50%;
+  transform: translateX(-50%); font-size: 76px; transition: left .16s ease;
+  filter: drop-shadow(0 8px 5px #1116);
+}
+.message {
+  position: absolute; z-index: 5; top: 14px; left: 50%; transform: translateX(-50%);
+  background: #ffffffdf; padding: 10px 16px; border-radius: 12px;
+  width: max-content; max-width: 90%; font-weight: bold;
+}
+.controls { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 16px; }
+button {
+  border: 0; border-radius: 12px; padding: 13px 18px; font-size: 16px;
+  font-weight: bold; cursor: pointer; color: white; background: #52657e;
+  box-shadow: 0 4px 0 #26364b; touch-action: manipulation;
+}
+button:active { transform: translateY(3px); box-shadow: 0 1px 0 #26364b; }
+.gas { background: #18a76b; min-width: 110px; }
+.brake { background: #e34c4c; }
+.sound { background: #6b62bd; }
+.restart { background: #e39a32; }
+.steering, .pedals { display: flex; gap: 10px; }
+.hint { color: #687386; font-size: 13px; margin-bottom: 2px; }
+@media (max-width: 520px) {
+  .scene { height: 330px; }
+  .hud { font-size: 13px; }
+  button { padding: 12px 13px; font-size: 14px; }
+  .car { font-size: 64px; }
