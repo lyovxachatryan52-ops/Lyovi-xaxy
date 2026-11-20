@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Car Parking Simulator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07111f;color:#fff;font-family:Arial,sans-serif;min-height:100vh}
+button{font:700 18px Arial;border:0;border-radius:14px;padding:14px 18px;color:#fff;cursor:pointer;box-shadow:0 5px 0 #0005}
+#menu{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at 70% 30%,#164c83,#07111f 65%)}
+.panel{width:min(950px,100%);display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:center}
+.hero{background:linear-gradient(145deg,#102d4e,#06101c);border:2px solid #3a83c9;border-radius:26px;padding:24px;min-height:400px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.logo{font-size:clamp(40px,8vw,76px);font-weight:1000;line-height:.9;text-shadow:4px 5px #000;color:#fff;letter-spacing:-3px}
+.logo span{display:block;color:#12b9ff}.sub{color:#ffd42a;font-size:clamp(20px,4vw,34px);font-weight:900;margin-top:8px}
+.car-art{font-size:clamp(95px,18vw,175px);text-align:center;filter:drop-shadow(0 14px 8px #0009);transform:scaleX(-1)}
+.tag{font-weight:bold;color:#cdeaff;font-size:17px}
+.menuBtns{display:flex;flex-direction:column;gap:14px}
+.menuBtns button{font-size:22px;padding:18px;border:2px solid #ffffff55}
+.green{background:linear-gradient(#34e72b,#078a20)}.blue{background:linear-gradient(#1aaeff,#0759c9)}.purple{background:linear-gradient(#a34cff,#5b20b7)}.red{background:linear-gradient(#ff5555,#b71525)}
+#game{display:none;max-width:950px;margin:auto;padding:12px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.pill{background:#142b42;padding:10px 14px;border-radius:12px;font-weight:bold}
+canvas{display:block;width:100%;height:auto;background:#293b48;border:3px solid #5c9bc9;border-radius:16px;touch-action:none}
+.hud{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0}
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:390px;margin:12px auto}
+.controls button{background:linear-gradient(#238ed4,#12508c);font-size:25px;padding:12px;touch-action:none}
+.controls .empty{visibility:hidden}.controls .brake{background:linear-gradient(#ffb52d,#c66a00);font-size:16px}
+#message{text-align:center;min-height:28px;color:#ffe16b;font-weight:bold}
+#overlay{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px}
+.modal{background:#10263c;border:2px solid #51baff;border-radius:20px;padding:25px;text-align:center;width:min(420px,100%)}
+.modal h2{margin-top:0}.modal button{margin:6px}
+@media(max-width:650px){.panel{grid-template-columns:1fr}.hero{min-height:270px}.car-art{font-size:100px}.menuBtns{gap:10px}.menuBtns button{padding:14px}.logo{font-size:52px}}
+</style>
+</head>
+<body>
+<div id="menu">
+ <div class="panel">
+  <div class="hero">
+   <div><div class="logo">CAR <span>PARKING</span></div><div class="sub">SIMULATOR</div></div>
+   <div class="car-art">🚘</div>
+   <div class="tag">🏁 Վարիր • Կայանեցրու • Հաղթիր</div>
+  </div>
+  <div class="menuBtns">
+   <button class="green" onclick="startGame()">▶ ԽԱՂԱԼ</button>
+   <button class="blue" onclick="showSettings()">⚙ ԿԱՐԳԱՎՈՐՈՒՄՆԵՐ</button>
+   <button class="purple" onclick="showRecords()">🏆 ՌԵԿՈՐԴՆԵՐ</button>
+   <button class="red" onclick="alert('Շնորհակալություն խաղալու համար!')">↩ ԵԼՔ</button>
+  </div>
+ </div>
+</div>
+<div id="game">
+ <div class="top">
+  <button class="blue" onclick="backMenu()">☰ Մենյու</button>
+  <div class="pill" id="level">Մակարդակ 1 / 3</div>
+  <div class="pill" id="score">Միավորներ՝ 0</div>
+ </div>
+ <canvas id="c" width="720" height="480"></canvas>
+ <div class="hud"><div class="pill" id="status">Գտիր դեղին կայանատեղին</div><div class="pill">🚗 Դանդաղ վարիր</div></div>
+ <div id="message">Օգտագործիր սլաքները՝ մեքենան կառավարելու համար։</div>
+ <div class="controls">
+  <div class="empty"></div><button id="up">⬆️</button><div class="empty"></div>
+  <button id="left">⬅️</button><button class="brake" id="brake">ԱՐԳԵԼԱԿ</button><button id="right">➡️</button>
+  <div class="empty"></div><button id="down">⬇️</button><div class="empty"></div>
+ </div>
+</div>
+<div id="overlay"><div class="modal"><h2 id="modalTitle">Պատրաստ է</h2><p id="modalText"></p><button class="green" id="modalBtn" onclick="nextLevel()">Շարունակել</button><button class="blue" onclick="backMenu()">Մենյու</button></div></div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let level=1,score=0,car,keys={},moving=false,won=false,obstacles=[],target,animation;
+const levels=[
+ {x:535,y:85,w:105,h:65,obs:[[250,90,95,30],[380,300,35,100],[120,340,110,28]]},
+ {x:90,y:340,w:110,h:65,obs:[[230,100,35,180],[390,65,120,30],[490,270,35,130],[250,390,130,25]]},
+ {x:520,y:330,w:115,h:65,obs:[[180,80,120,30],[350,150,35,190],[100,290,130,30],[500,90,35,130],[300,390,110,25]]}
+];
+function startGame(){document.getElementById('menu').style.display='none';document.getElementById('game').style.display='block';level=1;score=0;loadLevel();loop()}
+function backMenu(){document.getElementById('overlay').style.display='none';document.getElementById('game').style.display='none';document.getElementById('menu').style.display='flex';cancelAnimationFrame(animation)}
+function loadLevel(){let l=levels[level-1];target={...l};obstacles=l.obs;car={x:75,y:80,angle:0,speed:0,w:42,h:23};won=false;document.getElementById('level').textContent=`Մակարդակ ${level} / 3`;document.getElementById('score').textContent='Միավորներ՝ '+score;document.getElementById('status').textContent='Կայանիր դեղին գոտում';document.getElementById('message').textContent='Օգտագործիր սլաքները՝ մեքենան կառավարելու համար։';}
+function draw(){ctx.clearRect(0,0,720,480);ctx.fillStyle='#354c55';ctx.fillRect(0,0,720,480);
+ // parking lot markings
+ ctx.strokeStyle='#d6e1e5';ctx.lineWidth=3;ctx.setLineDash([18,14]);ctx.beginPath();ctx.moveTo(20,240);ctx.lineTo(700,240);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle='#233640';ctx.fillRect(10,10,700,460);ctx.strokeStyle='#8ba5ad';ctx.lineWidth=5;ctx.strokeRect(10,10,700,460);
+ // target bay
+ ctx.fillStyle='#d7ae24';ctx.fillRect(target.x,target.y,target.w,target.h);ctx.strokeStyle='#fff27a';ctx.lineWidth=5;ctx.strokeRect(target.x,target.y,target.w,target.h);ctx.fillStyle='#43340b';ctx.font='bold 16px Arial';ctx.fillText('P',target.x+target.w/2-6,target.y+target.h/2+6);
+ obstacles.forEach(o=>{ctx.fillStyle='#e05b35';ctx.fillRect(...o);ctx.fillStyle='#ffb28e';ctx.fillRect(o[0]+5,o[1]+5,Math.max(8,o[2]-10),5)});
+ // decorative parked cars
+ [[570,180],[100,165],[620,420]].forEach((p,i)=>{ctx.fillStyle=['#8c9aa5','#6e86d8','#a1aab2'][i];ctx.fillRect(p[0],p[1],52,27);ctx.fillStyle='#bdeaff';ctx.fillRect(p[0]+8,p[1]+4,16,8);ctx.fillRect(p[0]+30,p[1]+4,14,8)});
+ // player car
+ ctx.save();ctx.translate(car.x,car.y);ctx.rotate(car.angle);ctx.fillStyle='#05090d';ctx.fillRect(-car.w/2-4,-car.h/2-3,car.w+8,car.h+6);ctx.fillStyle='#147de0';ctx.fillRect(-car.w/2,-car.h/2,car.w,car.h);ctx.fillStyle='#b9edff';ctx.fillRect(-7,-car.h/2+3,15,car.h-6);ctx.fillStyle='#f9e77a';ctx.fillRect(car.w/2-3,-car.h/2+2,4,5);ctx.fillRect(car.w/2-3,car.h/2-7,4,5);ctx.restore();
+}
+function collides(){if(car.x<30||car.x>690||car.y<30||car.y>450)return true;for(let o of obstacles){if(car.x>o[0]-25&&car.x<o[0]+o[2]+25&&car.y>o[1]-20&&car.y<o[1]+o[3]+20)return true}return false}
+function update(){if(won)return;let old={x:car.x,y:car.y};if(keys.up)car.speed=Math.min(car.speed+.11,2.5);else if(keys.down)car.speed=Math.max(car.speed-.13,-1.5);else car.speed*=.96;if(keys.brake)car.speed*=.78;
+ if(keys.left)car.angle-=.045*(Math.abs(car.speed)+.3);if(keys.right)car.angle+=.045*(Math.abs(car.speed)+.3);
+ car.x+=Math.cos(car.angle)*car.speed;car.y+=Math.sin(car.angle)*car.speed;
+ if(collides()){car.x=old.x;car.y=old.y;car.speed=0;document.getElementById('message').textContent='Զգույշ։ Դիպար արգելքին։ Փորձիր նորից։'}
+ const inside=car.x>target.x+12&&car.x<target.x+target.w-12&&car.y>target.y+12&&car.y<target.y+target.h-12&&Math.abs(car.speed)<.55;
+ if(inside){won=true;score+=100;document.getElementById('score').textContent='Միավորներ՝ '+score;document.getElementById('modalTitle').textContent='🎉 Հրաշալի կայանում';document.getElementById('modalText').textContent='Դու հաջողությամբ կայանեցիր մեքենան։ +100 միավոր';document.getElementById('modalBtn').textContent=level===3?'Ավարտել խաղը':'Հաջորդ մակարդակ';document.getElementById('overlay').style.display='flex'}
+}
+function loop(){update();draw();animation=requestAnimationFrame(loop)}
+function bind(id,key){let b=document.getElementById(id);b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[key]=false))}
+[['up','up'],['down','down'],['left','left'],['right','right'],['brake','brake']].forEach(a=>bind(...a));
+document.addEventListener('keydown',e=>{let k={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',' ':'brake'}[e.key];if(k){keys[k]=true;e.preventDefault()}});
+document.addEventListener('keyup',e=>{let k={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',' ':'brake'}[e.key];if(k)keys[k]=false});
+function nextLevel(){document.getElementById('overlay').style.display='none';if(level<3){level++;loadLevel()}else{document.getElementById('modalTitle').textContent='🏆 Դու հաղթեցիր';document.getElementById('modalText').textContent='Բոլոր մակարդակներն ավարտված են։ Ընդհանուր միավորներ՝ '+score;document.getElementById('modalBtn').textContent='Նոր խաղ';document.getElementById('modalBtn').onclick=()=>{document.getElementById('overlay').style.display='none';level=1;score=0;loadLevel();document.getElementById('modalBtn').onclick=nextLevel}}}
+function showSettings(){alert('Կառավարում՝ էկրանի սլաքներով կամ համակարգչի ստեղնաշարի սլաքներով։ Արգելակ՝ կենտրոնական կոճակով կամ Space։')}
+function showRecords(){alert('Քո լավագույն արդյունքը այս խաղում՝ '+(localStorage.getItem('bestParking')||'0')+' միավոր։')}
+</script>
+</body></html>
