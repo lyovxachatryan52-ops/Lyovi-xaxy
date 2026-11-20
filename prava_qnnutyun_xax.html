@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173f35">
+<title>Վարորդական քննության փորձնական խաղ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(150deg,#dff5ff,#f0fff2 55%,#fff5dc);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#183b32}
+.wrap{max-width:760px;margin:auto;padding:14px}header{text-align:center;padding:13px 8px}h1{font-size:clamp(27px,7vw,40px);color:#176b58;margin:8px 0}
+.panel{background:#ffffffed;border:2px solid #cdeadd;border-radius:23px;padding:18px;margin:13px 0;box-shadow:0 8px 24px #164d3610}
+.pill{display:inline-block;background:#edf8f2;border-radius:99px;padding:7px 12px;font-weight:800}
+button{border:0;border-radius:15px;padding:13px 16px;font:700 16px system-ui;cursor:pointer}.primary{background:#176b58;color:white;width:100%;margin-top:14px}
+.characters{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.char{background:#f5fffa;border:2px solid #d8eee3;color:#183b32}.char.sel{border-color:#176b58;background:#e3f8ed}.avatar{display:block;font-size:43px}
+.examhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.progress{height:10px;background:#e8efea;border-radius:99px;overflow:hidden;margin:13px 0}.bar{height:100%;background:#28a675;width:0;transition:width .25s}
+.sign{font-size:52px;text-align:center;margin:8px}.question{font-size:21px;font-weight:850;line-height:1.35;margin:12px 0}.answers{display:grid;gap:10px}
+.answer{background:#f4f8ff;border:2px solid #dce7f5;color:#183b32;text-align:left;min-height:52px}.answer:disabled{opacity:1}.answer.chosen{border-color:#176b58;background:#e8f7ef}
+.note{background:#f3f8ff;border-radius:14px;padding:12px;color:#38536a;line-height:1.5}
+.feedback{padding:12px;border-radius:14px;margin-top:12px;font-weight:750}.good{background:#e4f8e9;color:#17623b}.bad{background:#fff0e9;color:#88472e}
+.hidden{display:none!important}.center{text-align:center}.big{font-size:64px}.resultgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:16px 0}.stat{background:#f3faf6;border:1px solid #d9eee2;border-radius:15px;padding:13px;text-align:center}.stat b{display:block;font-size:26px;color:#176b58}
+.review{background:#f8faf9;border:1px solid #e1ebe5;border-radius:14px;padding:12px;margin:9px 0;text-align:left;line-height:1.45}
+footer{text-align:center;font-size:13px;color:#57766d;padding:12px}
+@media(min-width:560px){.characters{grid-template-columns:repeat(4,1fr)}}
+</style></head>
+<body><div class="wrap">
+<header><div class="pill">🪪 ՓՈՐՁՆԱԿԱՆ ՔՆՆՈՒԹՅՈՒՆ</div><h1>🚦 Պրավայի քննություն</h1><p>Պատասխանի՛ր հարցերին, ավարտի՛ր քննությունը և տես՝ քանի միավոր ես հավաքել։</p></header>
+<section id="start" class="panel">
+<h2>Քննության գրանցում</h2>
+<p>Ընտրի՛ր մասնակցին․</p>
+<div class="characters">
+<button class="char sel" data-name="Հովո"><span class="avatar">🧑🏻‍🚀</span><b>Հովո</b></button>
+<button class="char" data-name="Լյով"><span class="avatar">🧑🏼‍🎓</span><b>Լյով</b></button>
+<button class="char" data-name="Ազատ"><span class="avatar">🧑🏽‍🎨</span><b>Ազատ</b></button>
+<button class="char" data-name="Տիկո"><span class="avatar">🧑🏻‍🔧</span><b>Տիկո</b></button>
+</div>
+<div class="note" style="margin-top:14px">📋 Քննությունը պարունակում է 20 հարց։ Յուրաքանչյուր ճիշտ պատասխան՝ 1 միավոր։ Խաղային անցողիկ շեմը՝ 18 միավոր։ Վերջում կտեսնես արդյունքդ և սխալ պատասխանները։</div>
+<button class="primary" id="begin">Սկսել քննությունը 📝</button>
+</section>
+
+<section id="exam" class="panel hidden">
+<div class="examhead"><span class="pill" id="candidate">Մասնակից՝ Հովո</span><span class="pill" id="number">Հարց 1 / 20</span><span class="pill">⭐ <span id="liveScore">0</span></span></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="sign" id="sign">🚦</div>
+<div class="question" id="question"></div>
+<div class="answers" id="answers"></div>
+<div id="feedback" class="feedback hidden"></div>
+<button class="primary hidden" id="next">Հաջորդ հարցը ➜</button>
+</section>
+
+<section id="result" class="panel hidden center">
+<div class="big" id="resultIcon">🏆</div>
+<h2 id="resultTitle">Քննությունն ավարտված է։</h2>
+<p id="resultMessage"></p>
+<div class="resultgrid">
+<div class="stat"><b id="points">0/20</b><span>Միավոր</span></div>
+<div class="stat"><b id="mistakes">0</b><span>Սխալ պատասխան</span></div>
+<div class="stat"><b id="percent">0%</b><span>Ճշտություն</span></div>
+<div class="stat"><b id="status">—</b><span>Արդյունք</span></div>
+</div>
+<div id="review" style="margin-top:16px"></div>
+<button class="primary" id="retry">Կրկին հանձնել քննությունը 🔁</button>
+<button class="primary" style="background:#eaf5ef;color:#176b58" id="home">Վերադառնալ սկզբին</button>
+</section>
+<footer>Սա ուսուցողական, ոչ պաշտոնական քննության խաղ է։ Խաղում «անցնելը» իրական վարորդական իրավունք չի տալիս։ Իրական մեքենա վարել կարելի է միայն օրենքով սահմանված տարիքից և համապատասխան իրավունքով։</footer>
+</div>
+<script>
+const qs=[
+["🚦","Կարմիր լուսացույցի դեպքում ի՞նչ պետք է անի վարորդը։",["Կանգ առնի","Արագացնի","Շարունակի, եթե ճանապարհը դատարկ է"],0,"Կարմիր լույսի դեպքում կանգնում ենք։"],
+["🟢","Ի՞նչ է նշանակում կանաչ լուսացույցը։",["Կանգնել","Շարժվել՝ համոզվելով, որ անվտանգ է","Արագացնել ցանկացած դեպքում"],1,"Կանաչը թույլ է տալիս շարժվել, եթե դա անվտանգ է։"],
+["🛑","Ի՞նչ է պահանջում STOP նշանը։",["Միայն դանդաղեցնել","Կանգ առնել","Ազդանշան տալ"],1,"STOP նշանի մոտ պետք է ամբողջությամբ կանգ առնել։"],
+["🚸","Որտե՞ղ է հետիոտնը հատում ճանապարհը։",["Հետիոտնային անցումով՝ համոզվելով, որ անվտանգ է","Մեքենաների արանքով","Ցանկացած տեղ վազելով"],0,"Օգտվում ենք հետիոտնային անցումից և համոզվում, որ անվտանգ է։"],
+["⚠️","Ի՞նչ է նշանակում եռանկյունաձև նախազգուշացնող նշանը։",["Կայանատեղի","Հնարավոր վտանգի մասին զգուշացում","Միակողմանի երթևեկություն"],1,"Նախազգուշացնող նշանը հուշում է, որ պետք է զգույշ լինել։"],
+["🚑","Ազդանշաններով շտապօգնության մեքենա է մոտենում։ Ի՞նչ պետք է անեն մյուս վարորդները։",["Խանգարեն անցնելուն","Անվտանգ ձևով ճանապարհ տան","Հետևեն շատ մոտ"],1,"Շտապ օգնության մեքենային պետք է անվտանգ ճանապարհ տալ։"],
+["🌧️","Անձրևի ժամանակ ճանապարհը կարող է լինել…",["Սայթաքուն","Ավելի կպչուն","Միշտ չոր"],0,"Թաց ճանապարհին մեքենայի արգելակման ճանապարհը կարող է երկարել։"],
+["🚲","Հեծանվորդի համար ո՞րն է ճիշտ։",["Անտեսել ճանապարհային նշանները","Պահպանել կանոնները և կրել սաղավարտ","Քշել փակ աչքերով"],1,"Սաղավարտն ու կանոնների պահպանումը կարևոր են։"],
+["📵","Վարորդը շարժման ընթացքում ինչի՞ց պետք է խուսափի։",["Ճանապարհին հետևելուց","Հեռախոսով զբաղվելուց","Հայելիներին նայելուց"],1,"Հեռախոսը շեղում է ուշադրությունը ճանապարհից։"],
+["🚶","Եթե կա մայթ, հետիոտնը որտե՞ղ պետք է քայլի։",["Մայթով","Ճանապարհի մեջտեղով","Մեքենաների արանքով"],0,"Հետիոտնը քայլում է մայթով, երբ այն կա։"],
+["↔️","Երթևեկության ուղղությունը փոխելուց առաջ ի՞նչ պետք է անել։",["Առանց նայելու թեքվել","Նախապես ազդանշան տալ և համոզվել, որ անվտանգ է","Արագացնել"],1,"Մանևրից առաջ ազդանշան ենք տալիս և ստուգում անվտանգությունը։"],
+["🅿️","Կարելի՞ է մեքենան կայանել այնպես, որ փակվի հետիոտնային անցումը։",["Այո, մի քանի րոպեով","Ոչ","Միայն երեկոյան"],1,"Հետիոտնային անցումը պետք է ազատ պահել։"],
+["🔺","Կարմիր եզրագծով եռանկյուն նշանները հիմնականում ի՞նչ են անում։",["Նախազգուշացնում են","Թույլատրում են կայանել","Ցույց են տալիս խանութ"],0,"Դրանք նախազգուշացնող ճանապարհային նշաններ են։"],
+["🚗","Ինչո՞ւ է պետք պահպանել անվտանգ հեռավորություն առջևի մեքենայից։",["Որպեսզի ժամանակ լինի անվտանգ կանգնելու","Որպեսզի չտեսնենք ճանապարհը","Որպեսզի ավելի արագ հասնենք"],0,"Հեռավորությունը օգնում է ժամանակին արձագանքել։"],
+["🌙","Գիշերը վարելիս ի՞նչն է հատկապես կարևոր։",["Անջատել բոլոր լույսերը","Օգտագործել համապատասխան լուսարձակներ և ուշադիր լինել","Նայել միայն հեռախոսին"],1,"Գիշերը լավ տեսանելիությունն ու զգուշությունը կարևոր են։"],
+["🚧","Ճանապարհային աշխատանքների նշան տեսնելիս ի՞նչ պետք է անել։",["Անտեսել այն","Դանդաղեցնել և հետևել նշաններին","Արագ անցնել"],1,"Աշխատանքների հատվածում պետք է հետևել ժամանակավոր նշաններին։"],
+["🔄","Շրջանաձև երթևեկության մոտենալիս ի՞նչ պետք է անել։",["Ուշադրություն դարձնել նշաններին և զիջման կանոններին","Միշտ մտնել առանց նայելու","Փակել աչքերը"],0,"Շրջանաձև խաչմերուկում հետևում ենք նշաններին և զիջման կանոններին։"],
+["🧒","Երեխաները ճանապարհն անցնելիս ի՞նչ պետք է անեն։",["Վազեն մեքենաների արանքով","Անցնեն մեծահասակի օգնությամբ՝ անվտանգ անցումով","Խաղան ճանապարհին"],1,"Երեխաները պետք է անցնեն անվտանգ տեղով և մեծահասակի օգնությամբ։"],
+["🚦","Եթե խաչմերուկում կարգավորողը ձեռքով նշան է տալիս, ինչի՞ն պետք է հետևել։",["Կարգավորողի ազդանշանին","Միայն կողքի մեքենային","Միայն գովազդային ցուցանակին"],0,"Կարգավորողի ազդանշանները կարևոր են երթևեկությունը կարգավորելու համար։"],
+["🧠","Ո՞րն է լավ վարորդի ամենակարևոր սովորություններից մեկը։",["Շտապել ու ռիսկի դիմել","Հանգիստ լինել, ուշադիր հետևել կանոններին","Մրցել մյուս մեքենաների հետ"],1,"Ուշադիր, հանգիստ և պատասխանատու լինելը օգնում է անվտանգ երթևեկել։"]
+];
+let who="Հովո",i=0,score=0,chosen=[],locked=false;
+const $=id=>document.getElementById(id);
+document.querySelectorAll(".char").forEach(b=>b.onclick=()=>{document.querySelectorAll(".char").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");who=b.dataset.name});
+$("begin").onclick=()=>startExam();
+function startExam(){i=0;score=0;chosen=[];$("start").classList.add("hidden");$("result").classList.add("hidden");$("exam").classList.remove("hidden");showQuestion()}
+function showQuestion(){locked=false;let q=qs[i];$("candidate").textContent="Մասնակից՝ "+who;$("number").textContent=`Հարց ${i+1} / ${qs.length}`;$("liveScore").textContent=score;$("bar").style.width=(i/qs.length*100)+"%";$("sign").textContent=q[0];$("question").textContent=q[1];$("answers").innerHTML="";$("feedback").classList.add("hidden");$("next").classList.add("hidden");q[2].forEach((a,j)=>{let b=document.createElement("button");b.className="answer";b.textContent=["A","B","C"][j]+") "+a;b.onclick=()=>select(j,b);$("answers").appendChild(b)})}
+function select(j,btn){if(locked)return;locked=true;let q=qs[i];chosen[i]=j;if(j===q[3])score++;[...$("answers").children].forEach((b,k)=>{b.disabled=true;if(k===q[3])b.classList.add("chosen")});$("liveScore").textContent=score;$("feedback").textContent=j===q[3]?"✅ Ճիշտ պատասխան։ Շարունակի՛ր, դու կարող ես։":"💚 Այս անգամ չստացվեց։ Ճիշտ պատասխանը՝ "+q[2][q[3]]+"։ Սովորելով ավելի լավ կստացվի։";$("feedback").className="feedback "+(j===q[3]?"good":"bad");$("next").classList.remove("hidden");$("next").textContent=i===qs.length-1?"Ավարտել քննությունը 🏁":"Հաջորդ հարցը ➜"}
+$("next").onclick=()=>{i++;if(i<qs.length)showQuestion();else finish()};
+function finish(){ $("exam").classList.add("hidden");$("result").classList.remove("hidden");let pass=score>=18,wrong=qs.length-score;$("resultIcon").textContent=pass?"🏆🎉":"📘💪";$("resultTitle").textContent=pass?`Շնորհավոր, ${who}՛։`:`Քննությունն ավարտվեց, ${who}՛։`;$("resultMessage").textContent=pass?"Դու հաղթահարեցիր խաղային անցողիկ շեմը։ Հիանալի աշխատանք։":"Այս անգամ խաղային անցողիկ շեմը չհաղթահարեցիր, բայց կարող ես սովորել սխալներից և նորից փորձել։";$("points").textContent=score+"/20";$("mistakes").textContent=wrong;$("percent").textContent=Math.round(score/20*100)+"%";$("status").textContent=pass?"ԱՆՑԱՎ":"ՉԱՆՑԱՎ";$("review").innerHTML="<h3>Քննության պատասխանների ստուգում</h3>"+qs.map((q,k)=>{let ok=chosen[k]===q[3];return `<div class="review"><b>${k+1}. ${q[1]}</b><br>${ok?"<span style='color:#16804e'>✓ Ճիշտ է</span>":"<span style='color:#b65335'>✗ Սխալ է</span>"}<br><small>Ճիշտ պատասխանը՝ ${q[2][q[3]]}</small></div>`}).join("")}
+$("retry").onclick=startExam;$("home").onclick=()=>{$("result").classList.add("hidden");$("start").classList.remove("hidden")};
+</script></body></html>
