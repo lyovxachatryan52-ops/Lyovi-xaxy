@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ֆուտբոլի 11 մետրանոցներ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#fff;font-family:Arial,sans-serif;display:flex;justify-content:center;min-height:100vh}
+.wrap{width:min(100%,520px);padding:14px;display:flex;flex-direction:column;gap:12px}
+h1{text-align:center;color:#8ee28d;margin:5px 0;font-size:27px}
+.stats{display:flex;justify-content:space-between;gap:8px;background:#202d40;padding:12px;border-radius:12px;font-weight:bold}
+.field{height:min(65vh,590px);min-height:390px;position:relative;overflow:hidden;border:4px solid #e8f5e9;border-radius:15px;background:repeating-linear-gradient(0deg,#21864b 0 48px,#249653 48px 96px)}
+.box{position:absolute;left:12%;right:12%;top:5%;height:37%;border:3px solid #fff;border-top:0}
+.goal{position:absolute;left:19%;right:19%;top:3%;height:30%;border:7px solid #fff;border-bottom:10px solid #eee;background:repeating-linear-gradient(90deg,#ffffff18 0 35px,#ffffff70 36px 38px),repeating-linear-gradient(0deg,#ffffff18 0 28px,#ffffff70 29px 31px)}
+.goal:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:#fff}
+.keeper{position:absolute;top:17%;left:calc(50% - 34px);width:68px;height:95px;z-index:3;transition:left .35s}
+.head{width:34px;height:34px;border-radius:50%;background:#f0c49b;margin:auto;border:2px solid #633}
+.body{width:48px;height:47px;background:#f4c542;border:3px solid #543;margin:0 auto;border-radius:12px}
+.arm{position:absolute;top:42px;width:36px;height:12px;background:#f0c49b;border:2px solid #633;border-radius:10px}
+.arm.l{left:-13px;transform:rotate(25deg)}.arm.r{right:-13px;transform:rotate(-25deg)}
+.legs{display:flex;justify-content:center;gap:8px}.legs i{display:block;width:12px;height:27px;background:#263b70;border-radius:5px}
+.ball{position:absolute;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0 25%,#ddd 26% 100%);border:2px solid #222;left:calc(50% - 17px);bottom:14%;z-index:4;transition:all .65s cubic-bezier(.2,.7,.3,1)}
+.spot{position:absolute;bottom:18%;left:calc(50% - 4px);width:8px;height:8px;border-radius:50%;background:#fff}
+.message{position:absolute;bottom:4%;left:0;right:0;text-align:center;font-weight:bold;text-shadow:0 2px 3px #000;font-size:18px;z-index:5}
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button{border:0;border-radius:11px;padding:14px 8px;background:#8ee28d;color:#102416;font-size:17px;font-weight:bold}
+button:disabled{opacity:.5}.kick{grid-column:1/-1;background:#ffbd59}
+.overlay{position:absolute;inset:0;background:#101827e8;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px}
+.overlay h2{color:#8ee28d;font-size:28px;margin:0 0 8px}.overlay button{padding:14px 28px}
+.note{text-align:center;color:#cbd5e1;font-size:14px}
+</style>
+</head>
+<body><main class="wrap">
+<h1>⚽ 11 ՄԵՏՐԱՆՈՑՆԵՐ</h1>
+<div class="stats"><span>Գոլեր՝ <b id="goals">0</b></span><span>Հարված՝ <b id="shots">0</b>/5</span><span>Բաց թողնված՝ <b id="misses">0</b></span></div>
+<div class="field">
+<div class="box"></div><div class="goal"></div>
+<div class="keeper" id="keeper"><div class="head"></div><div class="body"></div><i class="arm l"></i><i class="arm r"></i><div class="legs"><i></i><i></i></div></div>
+<div class="spot"></div><div class="ball" id="ball"></div><div class="message" id="message">Ընտրիր հարվածի ուղղությունը</div>
+<div class="overlay" id="overlay"><h2>⚽ ՖՈՒՏԲՈԼ</h2><p>Դու 11 մետրանոց հարվածներ կատարողն ես։ Խփիր 5 անգամ և փորձիր շատ գոլ խփել։</p><button id="start">ՍԿՍԵԼ ԽԱՂԸ</button></div>
+</div>
+<div class="buttons">
+<button class="dir" data-dir="left">⬅ ՁԱԽ</button><button class="dir" data-dir="center">⬆ ՄԵՋՏԵՂ</button><button class="dir" data-dir="right">ԱՋ ➡</button>
+<button class="kick" id="kick" disabled>ՀԱՐՎԱԾԵԼ ⚽</button>
+</div>
+<div class="note">Ընտրիր ուղղությունը, հետո սեղմիր «Հարվածել»։ Դարպասապահը կփորձի գուշակել։</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let goals=0,shots=0,misses=0,direction=null,busy=false,playing=false;
+const positions={left:'29%',center:'calc(50% - 34px)',right:'63%'};
+function update(){$('goals').textContent=goals;$('shots').textContent=shots;$('misses').textContent=misses}
+function start(){goals=shots=misses=0;direction=null;busy=false;playing=true;update();$('overlay').style.display='none';$('message').textContent='Ընտրիր հարվածի ուղղությունը';$('ball').style.transition='none';$('ball').style.left='calc(50% - 17px)';$('ball').style.bottom='14%';$('keeper').style.left=positions.center;$('kick').disabled=true;document.querySelectorAll('.dir').forEach(b=>b.disabled=false)}
+document.querySelectorAll('.dir').forEach(b=>b.onclick=()=>{if(!playing||busy)return;direction=b.dataset.dir;document.querySelectorAll('.dir').forEach(x=>x.style.outline=x===b?'3px solid white':'none');$('kick').disabled=false;$('message').textContent='Ընտրված է՝ '+({left:'ձախ',center:'մեջտեղ',right:'աջ'}[direction])});
+$('kick').onclick=()=>{
+ if(!playing||busy||!direction)return;busy=true;$('kick').disabled=true;document.querySelectorAll('.dir').forEach(b=>b.disabled=true);
+ const guess=['left','center','right'][Math.floor(Math.random()*3)],saved=direction;shots++;
+ $('keeper').style.left=positions[guess];
+ const target={left:'calc(29% - 17px)',center:'calc(50% - 17px)',right:'calc(71% - 17px)'}[saved];
+ $('ball').style.transition='all .65s cubic-bezier(.2,.7,.3,1)';$('ball').style.left=target;$('ball').style.bottom='68%';
+ const scored=saved!==guess;
+ setTimeout(()=>{$('message').textContent=scored?'ԳՈ՜Լ։ Հիանալի հարված։ ⚽':'Դարպասապահը բռնեց գնդակը։ 🧤';if(scored)goals++;else misses++;update();
+ setTimeout(()=>{if(shots>=5)finish();else{$('ball').style.transition='none';$('ball').style.left='calc(50% - 17px)';$('ball').style.bottom='14%';$('keeper').style.left=positions.center;direction=null;document.querySelectorAll('.dir').forEach(b=>{b.disabled=false;b.style.outline='none'});$('message').textContent='Ընտրիր հաջորդ հարվածի ուղղությունը';busy=false}},850)
+ },680)
+};
+function finish(){playing=false;$('overlay').innerHTML='<h2>ԽԱՂՆ ԱՎԱՐՏՎԵՑ 🏆</h2><p>Քո գոլերը՝ <b>'+goals+'</b> / 5<br>Բաց թողնված՝ '+misses+'</p><button id="again">ԿՐԿԻՆ ԽԱՂԱԼ</button>';$('overlay').style.display='flex';$('again').onclick=start}
+$('start').onclick=start;
+</script></body></html>
