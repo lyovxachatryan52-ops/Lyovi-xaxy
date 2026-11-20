@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Բասկետբոլի խաղ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#fff;font-family:Arial,sans-serif;display:flex;justify-content:center;min-height:100vh}
+.wrap{width:min(100%,520px);padding:14px;display:flex;flex-direction:column;gap:12px}
+h1{text-align:center;color:#ffbd59;margin:5px 0;font-size:29px}
+.stats{display:flex;justify-content:space-between;background:#202d40;padding:12px;border-radius:12px;font-weight:bold}
+.court{position:relative;height:min(66vh,610px);min-height:400px;border:5px solid #e9c18b;border-radius:16px;overflow:hidden;background:linear-gradient(#d88b43 0 70%,#bd7133 70%);touch-action:manipulation}
+.floorline{position:absolute;left:0;right:0;bottom:18%;height:3px;background:#ffe1b4}
+.key{position:absolute;bottom:0;left:24%;width:52%;height:36%;border:3px solid #ffe1b4;border-bottom:0;border-radius:110px 110px 0 0}
+.circle{position:absolute;width:150px;height:150px;border:3px solid #ffe1b4;border-radius:50%;left:calc(50% - 75px);bottom:4%}
+.board{position:absolute;top:12%;left:calc(50% - 5px);width:10px;height:115px;background:#f5f5f5}
+.backboard{position:absolute;top:12%;left:calc(50% - 65px);width:130px;height:65px;border:5px solid white;background:#bfe9ff55;border-radius:5px}
+.rim{position:absolute;top:25%;left:calc(50% - 43px);width:86px;height:13px;border:5px solid #f0442e;border-top:0;border-radius:0 0 50% 50%;z-index:3}
+.net{position:absolute;top:27%;left:calc(50% - 34px);width:68px;height:48px;border-left:2px dashed white;border-right:2px dashed white;background:repeating-linear-gradient(90deg,transparent 0 10px,#ffffffaa 10px 12px);clip-path:polygon(0 0,100% 0,80% 100%,20% 100%);z-index:2}
+.ball{position:absolute;width:42px;height:42px;left:calc(50% - 21px);bottom:18%;border-radius:50%;background:radial-gradient(circle at 30% 25%,#ffbf70,#e66b13 65%,#9c3c08);border:2px solid #51280d;z-index:4}
+.ball:before,.ball:after{content:"";position:absolute;background:#51280d}
+.ball:before{width:2px;height:100%;left:50%;top:0}
+.ball:after{height:2px;width:100%;top:50%;left:0}
+.overlay{position:absolute;inset:0;background:#101827d9;z-index:6;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:22px}
+.overlay h2{font-size:30px;color:#ffbd59;margin:0 0 8px}
+button{border:0;border-radius:12px;padding:14px 22px;background:#ffbd59;color:#24180c;font-weight:bold;font-size:18px}
+.shoot{width:100%;background:#e97720;color:white;font-size:22px}
+.note{text-align:center;color:#cbd5e1;font-size:14px}
+.hidden{display:none}
+</style>
+</head>
+<body><main class="wrap">
+<h1>🏀 ԲԱՍԿԵՏԲՈԼ</h1>
+<div class="stats"><span>Միավոր՝ <b id="score">0</b></span><span>Նետումներ՝ <b id="shots">0</b>/10</span><span>Խփումներ՝ <b id="hits">0</b></span></div>
+<div class="court" id="court">
+<div class="key"></div><div class="circle"></div><div class="floorline"></div>
+<div class="backboard"></div><div class="board"></div><div class="rim"></div><div class="net"></div><div class="ball" id="ball"></div>
+<div class="overlay" id="overlay"><h2>🏀 Բարի գալուստ</h2><p>Կատարիր 10 նետում և հավաքիր որքան հնարավոր է շատ միավոր։</p><button id="start">ՍԿՍԵԼ</button></div>
+</div>
+<button class="shoot" id="shoot">ՆԵՏԵԼ ԳՆԴԱԿԸ 🏀</button>
+<div class="note">Սեղմիր «Նետել գնդակը»։ Ամեն հաջող նետում՝ 2 միավոր։</div>
+</main>
+<script>
+const ball=document.getElementById('ball'),overlay=document.getElementById('overlay'),scoreEl=document.getElementById('score'),shotsEl=document.getElementById('shots'),hitsEl=document.getElementById('hits');
+let score=0,shots=0,hits=0,active=false,busy=false;
+function reset(){score=shots=hits=0;active=true;busy=false;update();ball.style.transition='none';ball.style.left='calc(50% - 21px)';ball.style.bottom='18%';overlay.classList.add('hidden')}
+function update(){scoreEl.textContent=score;shotsEl.textContent=shots;hitsEl.textContent=hits}
+function shoot(){if(!active||busy)return;busy=true;shots++;let good=Math.random()<.58;let startX=window.innerWidth;let endX=good?'calc(50% - 21px)':(Math.random()<.5?'calc(28% - 21px)':'calc(72% - 21px)');ball.style.transition='all .65s ease-in';ball.style.left=endX;ball.style.bottom=good?'70%':'53%';setTimeout(()=>{if(good){hits++;score+=2}update();ball.style.transition='all .2s';ball.style.left='calc(50% - 21px)';ball.style.bottom='18%';setTimeout(()=>{busy=false;if(shots>=10)finish()},220)},700)}
+function finish(){active=false;overlay.innerHTML='<h2>ԽԱՂՆ ԱՎԱՐՏՎԵՑ!</h2><p>Քո արդյունքը՝ <b>'+score+'</b> միավոր<br>Հաջող նետումներ՝ '+hits+' / 10</p><button id="again">ԿՐԿԻՆ ԽԱՂԱԼ</button>';overlay.classList.remove('hidden');document.getElementById('again').onclick=reset}
+document.getElementById('start').onclick=reset;document.getElementById('shoot').onclick=shoot;
+</script></body></html>
