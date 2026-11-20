@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ավտո մրցավազք</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101820;color:#fff;font-family:Arial,sans-serif;display:flex;justify-content:center;min-height:100vh}
+.wrap{width:min(100%,520px);padding:14px;display:flex;flex-direction:column;gap:10px}
+h1{text-align:center;margin:4px 0;color:#ffd54a;font-size:28px}
+.stats{display:flex;justify-content:space-between;background:#1d2a35;padding:12px 15px;border-radius:12px;font-weight:bold}
+.game{position:relative;width:100%;height:min(66vh,620px);min-height:380px;background:#333;border:5px solid #64717b;border-radius:16px;overflow:hidden}
+.grass{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#176b39 0 42px,#1b7540 42px 84px)}
+.road{position:absolute;left:17%;width:66%;top:0;bottom:0;background:#3a4148;border-left:5px solid #eee;border-right:5px solid #eee}
+.line{position:absolute;left:49%;width:3px;height:100%;background:repeating-linear-gradient(to bottom,#fff 0 36px,transparent 36px 72px);opacity:.8}
+.car{position:absolute;width:48px;height:82px;border-radius:12px;bottom:24px;left:calc(50% - 24px);background:linear-gradient(90deg,#a20d17,#ff4757,#a20d17);border:3px solid #ffd6d6;box-shadow:0 5px 10px #0008;z-index:3}
+.car:before,.enemy:before{content:"";position:absolute;left:8px;right:8px;top:13px;height:23px;background:#aee8ff;border-radius:6px}
+.car:after,.enemy:after{content:"";position:absolute;left:7px;right:7px;bottom:8px;height:9px;background:#222;border-radius:3px}
+.enemy{position:absolute;width:48px;height:82px;top:-100px;border-radius:12px;background:linear-gradient(90deg,#064c99,#2389ef,#064c99);border:3px solid #cde7ff;z-index:2}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;background:#07111acc;z-index:5}
+.overlay h2{font-size:30px;margin:0 0 10px;color:#ffd54a}
+button{border:0;border-radius:12px;background:#ffd54a;color:#202020;font-size:18px;font-weight:bold;padding:13px 22px;cursor:pointer}
+.controls{display:flex;justify-content:center;gap:28px}
+.controls button{width:100px;height:58px;font-size:26px;background:#263746;color:white;border:2px solid #718392;touch-action:none}
+.hint{text-align:center;color:#c7d2dc;font-size:13px}
+.hidden{display:none}
+</style>
+</head>
+<body><main class="wrap">
+<h1>🏁 ԱՎՏՈ ՄՐՑԱՎԱԶՔ</h1>
+<div class="stats"><span>Միավոր՝ <b id="score">0</b></span><span>Ռեկորդ՝ <b id="best">0</b></span><span>Արագություն՝ <b id="speed">1</b>x</span></div>
+<div class="game" id="game">
+<div class="grass"></div><div class="road"></div><div class="line" id="line"></div>
+<div class="car" id="car"></div>
+<div class="overlay" id="overlay"><h2>Պատրա՞ստ ես։</h2><p>Խուսափիր կապույտ մեքենաներից և հավաքիր միավորներ։</p><button id="start">ՍԿՍԵԼ ԽԱՂԸ</button></div>
+</div>
+<div class="controls"><button id="left">◀</button><button id="right">▶</button></div>
+<div class="hint">Հեռախոսով՝ սեղմիր սլաքները։ Համակարգչով՝ օգտագործիր ← և → ստեղները։</div>
+</main>
+<script>
+const game=document.getElementById('game'),car=document.getElementById('car'),overlay=document.getElementById('overlay');
+const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),speedEl=document.getElementById('speed'),line=document.getElementById('line');
+let running=false,score=0,best=0,x=0,enemies=[],last=0,spawn=0,lineY=0,speed=3.2,raf=0;
+const lanes=[22,39,56,73];
+function setCar(){car.style.left=x+'%'}
+function start(){cancelAnimationFrame(raf);enemies.forEach(e=>e.el.remove());enemies=[];score=0;speed=3.2;spawn=0;last=0;lineY=0;x=42;setCar();scoreEl.textContent='0';speedEl.textContent='1';overlay.classList.add('hidden');running=true;raf=requestAnimationFrame(loop)}
+function move(dir){if(!running)return;x=Math.max(19,Math.min(70,x+dir*4));setCar()}
+function makeEnemy(){const el=document.createElement('div');el.className='enemy';const lane=lanes[Math.floor(Math.random()*lanes.length)];el.style.left='calc('+lane+'% - 24px)';game.appendChild(el);enemies.push({el,y:-90,x:lane})}
+function end(){running=false;cancelAnimationFrame(raf);best=Math.max(best,score);bestEl.textContent=best;overlay.innerHTML='<h2>ԽԱՂՆ ԱՎԱՐՏՎԵՑ</h2><p>Քո միավորը՝ <b>'+score+'</b></p><button id="again">ԿՐԿԻՆ ԽԱՂԱԼ</button>';overlay.classList.remove('hidden');document.getElementById('again').onclick=start}
+function loop(t){if(!running)return;let dt=Math.min((t-last)/16.67||1,2);last=t;speed=3.2+Math.min(score/18,5);lineY=(lineY+speed*dt*2)%72;line.style.backgroundPositionY=lineY+'px';spawn+=dt;if(spawn>Math.max(28,75-score*.6)){makeEnemy();spawn=0}
+let carRect=car.getBoundingClientRect();for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];e.y+=speed*dt*2.3;e.el.style.top=e.y+'px';let r=e.el.getBoundingClientRect();if(r.bottom>carRect.top+8&&r.top<carRect.bottom-8&&r.right>carRect.left+7&&r.left<carRect.right-7){end();return}if(e.y>game.clientHeight){e.el.remove();enemies.splice(i,1);score++;scoreEl.textContent=score;speedEl.textContent=(speed/3.2).toFixed(1)}}
+raf=requestAnimationFrame(loop)}
+document.getElementById('start').onclick=start;
+document.getElementById('left').addEventListener('pointerdown',e=>{e.preventDefault();move(-1)});
+document.getElementById('right').addEventListener('pointerdown',e=>{e.preventDefault();move(1)});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')move(-1);if(e.key==='ArrowRight'||e.key==='d')move(1);if((e.key===' '||e.key==='Enter')&&!running)start()});
+bestEl.textContent=best;
+</script></body></html>
