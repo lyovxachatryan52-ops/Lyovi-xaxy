@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supermarket Simulator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f8fafc;font-family:Arial,sans-serif}
+header{padding:16px;text-align:center;background:#172338;border-bottom:2px solid #334155}
+h1{margin:0;font-size:24px}header p{margin:6px 0 0;color:#b8c5d8;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;max-width:900px;margin:auto}
+.stat{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}
+.stat small{display:block;color:#9fb0c7;font-size:12px}.stat b{font-size:20px;color:#86efac}
+main{max-width:900px;margin:auto;padding:12px;display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+.panel{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:14px}
+h2{font-size:18px;margin:0 0 12px}
+.shop{min-height:245px;background:linear-gradient(#dbeafe 0 18%,#bfdbfe 18% 100%);border-radius:12px;padding:12px;color:#172554;position:relative;overflow:hidden}
+.shop-title{text-align:center;font-weight:bold;font-size:18px;background:#fef3c7;border:2px solid #92400e;border-radius:8px;padding:7px;margin-bottom:12px}
+.shelves{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.shelf{background:#8b5a2b;border:4px solid #653b1d;border-radius:7px;min-height:125px;padding:7px 4px;display:flex;flex-direction:column;justify-content:space-around;align-items:center;box-shadow:inset 0 -7px #5b3419}
+.product{font-size:26px;line-height:1.4}.stock{font-size:12px;font-weight:bold;background:#fff;border-radius:6px;padding:3px 6px}
+.customer{position:absolute;bottom:6px;right:10px;font-size:34px;animation:bob 1s infinite alternate}
+@keyframes bob{to{transform:translateY(-5px)}}
+.products{display:grid;gap:9px}
+.item{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;background:#263449;padding:9px;border-radius:10px}
+.emoji{font-size:27px}.item small{display:block;color:#aebed2;margin-top:3px}
+button{border:0;border-radius:9px;padding:10px 12px;background:#22c55e;color:#052e16;font-weight:bold;font-size:14px;cursor:pointer}
+button:active{transform:scale(.97)}button.secondary{background:#334155;color:#f8fafc}button:disabled{opacity:.4;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.log{height:105px;overflow:auto;background:#0f172a;border-radius:9px;padding:9px;color:#cbd5e1;font-size:13px;line-height:1.5}
+.progress{height:9px;background:#334155;border-radius:8px;overflow:hidden;margin:8px 0}.progress span{display:block;height:100%;background:#22c55e;width:0}
+.footer{text-align:center;color:#94a3b8;padding:4px 12px 18px;font-size:12px}
+@media(max-width:650px){main{grid-template-columns:1fr}.stats{gap:5px;padding:8px}.stat{padding:8px 4px}.stat b{font-size:17px}.panel{padding:11px}}
+</style>
+</head>
+<body>
+<header><h1>🏪 SUPERMARKET SIMULATOR</h1><p>Կառավարիր քո խանութը, համալրիր ապրանքները և վաստակիր գումար։</p></header>
+<div class="stats">
+ <div class="stat"><small>💰 Գումար</small><b id="money">500 ֏</b></div>
+ <div class="stat"><small>⭐ Համբավ</small><b id="rep">1</b></div>
+ <div class="stat"><small>🛒 Վաճառքներ</small><b id="sales">0</b></div>
+</div>
+<main>
+<section class="panel">
+ <h2>🏬 Քո սուպերմարկետը</h2>
+ <div class="shop">
+  <div class="shop-title">ԼՅՈՎԻԻ ՄԱՐԿԵՏ</div>
+  <div class="shelves" id="shelves"></div>
+  <div class="customer" id="customer">🧍</div>
+ </div>
+ <div class="actions">
+  <button id="openBtn" onclick="toggleOpen()">Բացել խանութը</button>
+  <button class="secondary" onclick="upgrade()">Ընդլայնել խանութը — 300 ֏</button>
+ </div>
+ <div style="margin-top:12px"><b>Հաճախորդների հոսք</b><div class="progress"><span id="flow"></span></div><small id="status" style="color:#aebed2">Խանութը փակ է։ Բացիր, որ հաճախորդները գան։</small></div>
+</section>
+<section class="panel">
+ <h2>📦 Ապրանքների կառավարում</h2>
+ <div class="products" id="products"></div>
+ <h2 style="margin-top:16px">📋 Խանութի նորություններ</h2>
+ <div class="log" id="log">Բարի գալուստ։ Քեզ տրված է 500 դրամ։ Գնիր ապրանքներ և բացիր խանութը։</div>
+</section>
+</main>
+<div class="footer">Խաղը պահպանում է առաջընթացը այս սարքի բրաուզերում։</div>
+<script>
+const goods=[
+ {name:'Հաց',emoji:'🍞',cost:20,price:35,stock:5},
+ {name:'Կաթ',emoji:'🥛',cost:30,price:50,stock:5},
+ {name:'Խնձոր',emoji:'🍎',cost:15,price:30,stock:5},
+ {name:'Հյութ',emoji:'🧃',cost:25,price:45,stock:5},
+ {name:'Շոկոլադ',emoji:'🍫',cost:35,price:60,stock:5},
+ {name:'Պանիր',emoji:'🧀',cost:40,price:70,stock:5}
+];
+let money=500,rep=1,sales=0,isOpen=false,expanded=false,customers=0,day=1;
+const $=id=>document.getElementById(id);
+function log(t){$('log').innerHTML=t+'<br>'+ $('log').innerHTML}
+function render(){
+ $('money').textContent=money+' ֏';$('rep').textContent=rep;$('sales').textContent=sales;
+ $('products').innerHTML=goods.map((g,i)=>`<div class="item"><div class="emoji">${g.emoji}</div><div><b>${g.name}</b><small>Պահեստում՝ ${g.stock} | Գին՝ ${g.price} ֏</small></div><button onclick="restock(${i})">Գնել<br>${g.cost*5} ֏</button></div>`).join('');
+ $('shelves').innerHTML=goods.slice(0,expanded?6:3).map(g=>`<div class="shelf"><div class="product">${g.emoji}</div><div class="stock">${g.stock} հատ</div></div>`).join('');
+ $('openBtn').textContent=isOpen?'Փակել խանութը':'Բացել խանութը';
+ $('status').textContent=isOpen?'Խանութը բաց է․ հաճախորդները գնումներ են անում։':'Խանութը փակ է։ Բացիր, որ հաճախորդները գան։';
+}
+function restock(i){let g=goods[i],qty=5,cost=g.cost*qty;if(money<cost){log('❌ Բավարար գումար չկա՝ '+g.name+' գնելու համար։');return}money-=cost;g.stock+=qty;log('📦 Գնեցիր '+qty+' հատ '+g.name+'։');render()}
+function toggleOpen(){isOpen=!isOpen;log(isOpen?'🔔 Խանութը բացվեց։ Հաճախորդները գալիս են։':'🔒 Խանութը փակվեց։');render()}
+function upgrade(){if(expanded){log('Խանութն արդեն ընդլայնված է։');return}if(money<300){log('❌ Ընդլայնելու համար պետք է 300 ֏։');return}money-=300;expanded=true;rep+=2;log('🎉 Խանութն ընդլայնվեց։ Այժմ բոլոր 6 դարակներն են հասանելի։');render()}
+function customerVisit(){
+ if(!isOpen)return;
+ let available=goods.map((g,i)=>({g,i})).filter(x=>x.g.stock>0);
+ if(!available.length){log('😕 Հաճախորդը գնաց․ ապրանքները վերջացել են։');rep=Math.max(1,rep-1);render();return}
+ let pick=available[Math.floor(Math.random()*available.length)],g=pick.g;
+ g.stock--;money+=g.price; sales++;customers++;rep=Math.min(99,rep+(sales%5===0?1:0));
+ $('customer').textContent=['🧍','🧑','👩','🧔','👨‍🦱'][Math.floor(Math.random()*5)];
+ $('flow').style.width=Math.min(100,customers*5)+'%';
+ log('🛒 Հաճախորդը գնեց '+g.name+'՝ '+g.price+' ֏։');
+ render();
+}
+render();
+setInterval(customerVisit,2200);
+setInterval(()=>{if(isOpen){day++;log('🌞 Նոր աշխատանքային պահ։ Շարունակի՛ր սպասարկել հաճախորդներին։')}},30000);
+</script>
+</body>
+</html>
